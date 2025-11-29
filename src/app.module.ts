@@ -16,7 +16,7 @@ import { UserModule } from './Admin/Users/user.module';
         port: 5432,
         username: 'postgres',
         password: 'zimzim',     
-        database: 'AdminDB',  
+        database: 'TestDB',  
         autoLoadEntities: true,
         synchronize: true,       
       }),
