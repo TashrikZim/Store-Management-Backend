@@ -1,9 +1,18 @@
 import {
-  Controller, Get,Post,Body, Query, Delete, Param, Put, Patch, UsePipes, UseInterceptors,} from '@nestjs/common';
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  Delete,
+  Param,
+  Put,
+  Patch,
+  UseInterceptors,
+} from '@nestjs/common';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { AdminDto } from './dto/admin.dto';
 import { AdminService } from './admin.service';
-//import { AdminValidation } from './pipes/admin-validation.pipe';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 @Controller('admin')
 export class AdminController {
@@ -14,11 +23,9 @@ export class AdminController {
     { id: 2, name: 'Tashrik', mail: 'tashrik@gmail.com' },
   ];
 
-
   @Post('/validate')
   @UseInterceptors(FileFieldsInterceptor([])) 
- // @UsePipes(new AdminValidation()) 
-  validateeAdmin(@Body() adminData: any) {
+  validateAdmin(@Body() adminData: AdminDto) {
     return {
       message: 'Admin data validated successfully!',
       data: adminData,
@@ -26,11 +33,11 @@ export class AdminController {
   }
 
   @Get('/all')
-  getALl() {
+  getAll() {
     return this.admins;
   }
 
-  @Post('/creat')
+  @Post('/create')
   createAdmin(@Body() adminData: AdminDto) {
     console.log(adminData);
     return this.adminService.createAdmin(adminData);
