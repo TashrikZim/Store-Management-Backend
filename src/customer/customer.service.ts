@@ -1,7 +1,8 @@
-// src/customer/customer.service.ts
-
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, ILike } from 'typeorm';
 import { CreateCustomerDto } from './dto/create-customer.dto';
+import { CustomerEntity } from './customer.entity';
 
 export interface Customer {
   id: number;
@@ -17,7 +18,11 @@ export class CustomerService {
   private customers: Customer[] = [];
   private currentId = 1;
 
-  // 1) GET /customers
+  constructor(
+    @InjectRepository(CustomerEntity)
+    private readonly customerRepo: Repository<CustomerEntity>,
+  ) {}
+
   getAllCustomers() {
     return {
       success: true,
@@ -25,7 +30,6 @@ export class CustomerService {
     };
   }
 
-  // 2) GET /customers/:id
   getCustomerById(id: number) {
     const customer = this.customers.find((c) => c.id === id);
     return {
@@ -35,7 +39,6 @@ export class CustomerService {
     };
   }
 
-  // 3) GET /customers/name/:name
   getCustomerByName(name: string) {
     const matched = this.customers.filter(
       (c) => c.name.toLowerCase() === name.toLowerCase(),
@@ -46,7 +49,6 @@ export class CustomerService {
     };
   }
 
-  // 4) GET /customers/search?id=&name=
   searchCustomer(id?: number, name?: string) {
     const result = this.customers.filter((c) => {
       const matchId = id ? c.id === id : true;
@@ -62,7 +64,6 @@ export class CustomerService {
     };
   }
 
-  // 5) POST /customers (with NID image file)
   createCustomer(dto: CreateCustomerDto, nidImage: any) {
     const nidImageSizeMb = nidImage
       ? Number((nidImage.size / (1024 * 1024)).toFixed(2))
@@ -86,7 +87,6 @@ export class CustomerService {
     };
   }
 
-  // 6) PUT /customers/:id (full update, optional new NID image file)
   updateCustomer(
     id: number,
     dto: CreateCustomerDto,
@@ -125,7 +125,6 @@ export class CustomerService {
     };
   }
 
-  // 7) PATCH /customers/:id/nid (only NID info, no file here)
   updateCustomerNid(
     id: number,
     nidNumber: string,
@@ -152,7 +151,6 @@ export class CustomerService {
     };
   }
 
-  // 8) DELETE /customers/:id
   deleteCustomer(id: number) {
     const index = this.customers.findIndex((c) => c.id === id);
     if (index === -1) {
@@ -169,6 +167,63 @@ export class CustomerService {
       success: true,
       message: 'Customer deleted successfully',
       data: deleted,
+    };
+  }
+
+  async createCategory3User(
+    username: string,
+    fullName: string,
+    isActive?: boolean,
+  ) {
+    const entity = this.customerRepo.create({
+      username,
+      fullName,
+      isActive: isActive ?? false,
+    });
+    const saved = await this.customerRepo.save(entity);
+    return {
+      success: true,
+      message: 'Customer (DB) created successfully',
+      data: saved,
+    };
+  }
+
+  async findUsersByFullNameSubstring(substring: string) {
+    const users = await this.customerRepo.find({
+      where: { fullName: ILike(`%${substring}%`) },
+    });
+    return {
+      success: true,
+      data: users,
+    };
+  }
+
+  async findUserByUsername(username: string) {
+    const user = await this.customerRepo.findOne({
+      where: { username: username.toLowerCase() },
+    });
+    return {
+      success: !!user,
+      data: user ?? null,
+      message: user ? 'User found' : 'User not found',
+    };
+  }
+
+  async removeUserByUsername(username: string) {
+    const user = await this.customerRepo.findOne({
+      where: { username: username.toLowerCase() },
+    });
+    if (!user) {
+      return {
+        success: false,
+        message: 'User not found',
+      };
+    }
+    await this.customerRepo.remove(user);
+    return {
+      success: true,
+      message: 'User removed successfully',
+      data: user,
     };
   }
 }
