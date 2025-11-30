@@ -1,9 +1,15 @@
+// src/customer/customer.service.ts
 
 import { Injectable } from '@nestjs/common';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 
-export interface Customer extends CreateCustomerDto {
+export interface Customer {
   id: number;
+  name: string;
+  email: string;
+  nidNumber: string;
+  nidImageFileName?: string;
+  nidImageSizeMb?: number;
 }
 
 @Injectable()
@@ -11,6 +17,7 @@ export class CustomerService {
   private customers: Customer[] = [];
   private currentId = 1;
 
+  // 1) GET /customers
   getAllCustomers() {
     return {
       success: true,
@@ -18,6 +25,7 @@ export class CustomerService {
     };
   }
 
+  // 2) GET /customers/:id
   getCustomerById(id: number) {
     const customer = this.customers.find((c) => c.id === id);
     return {
@@ -27,6 +35,7 @@ export class CustomerService {
     };
   }
 
+  // 3) GET /customers/name/:name
   getCustomerByName(name: string) {
     const matched = this.customers.filter(
       (c) => c.name.toLowerCase() === name.toLowerCase(),
@@ -37,6 +46,7 @@ export class CustomerService {
     };
   }
 
+  // 4) GET /customers/search?id=&name=
   searchCustomer(id?: number, name?: string) {
     const result = this.customers.filter((c) => {
       const matchId = id ? c.id === id : true;
@@ -52,11 +62,21 @@ export class CustomerService {
     };
   }
 
-  createCustomer(dto: CreateCustomerDto) {
+  // 5) POST /customers (with NID image file)
+  createCustomer(dto: CreateCustomerDto, nidImage: any) {
+    const nidImageSizeMb = nidImage
+      ? Number((nidImage.size / (1024 * 1024)).toFixed(2))
+      : undefined;
+
     const newCustomer: Customer = {
       id: this.currentId++,
-      ...dto,
+      name: dto.name,
+      email: dto.email,
+      nidNumber: dto.nidNumber,
+      nidImageFileName: nidImage?.originalname,
+      nidImageSizeMb,
     };
+
     this.customers.push(newCustomer);
 
     return {
@@ -66,7 +86,12 @@ export class CustomerService {
     };
   }
 
-  updateCustomer(id: number, dto: CreateCustomerDto) {
+  // 6) PUT /customers/:id (full update, optional new NID image file)
+  updateCustomer(
+    id: number,
+    dto: CreateCustomerDto,
+    nidImage?: any,
+  ) {
     const index = this.customers.findIndex((c) => c.id === id);
     if (index === -1) {
       return {
@@ -76,7 +101,22 @@ export class CustomerService {
       };
     }
 
-    this.customers[index] = { id, ...dto };
+    const existing = this.customers[index];
+
+    const nidImageSizeMb = nidImage
+      ? Number((nidImage.size / (1024 * 1024)).toFixed(2))
+      : existing.nidImageSizeMb;
+
+    this.customers[index] = {
+      ...existing,
+      name: dto.name,
+      email: dto.email,
+      nidNumber: dto.nidNumber,
+      nidImageFileName: nidImage
+        ? nidImage.originalname
+        : existing.nidImageFileName,
+      nidImageSizeMb,
+    };
 
     return {
       success: true,
@@ -85,10 +125,11 @@ export class CustomerService {
     };
   }
 
+  // 7) PATCH /customers/:id/nid (only NID info, no file here)
   updateCustomerNid(
     id: number,
     nidNumber: string,
-    nidImageSizeMb: number,
+    nidImageSizeMb?: number,
   ) {
     const customer = this.customers.find((c) => c.id === id);
     if (!customer) {
@@ -100,7 +141,9 @@ export class CustomerService {
     }
 
     customer.nidNumber = nidNumber;
-    customer.nidImageSizeMb = nidImageSizeMb;
+    if (nidImageSizeMb !== undefined) {
+      customer.nidImageSizeMb = nidImageSizeMb;
+    }
 
     return {
       success: true,
@@ -109,12 +152,14 @@ export class CustomerService {
     };
   }
 
+  // 8) DELETE /customers/:id
   deleteCustomer(id: number) {
     const index = this.customers.findIndex((c) => c.id === id);
     if (index === -1) {
       return {
         success: false,
         message: 'Customer not found',
+        data: null,
       };
     }
 
