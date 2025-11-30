@@ -1,48 +1,28 @@
-// src/customer/customer.controller.ts
-
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Patch,
-  Delete,
-  Param,
-  Query,
-  Body,
-  UsePipes,
-  UseInterceptors,
-  UploadedFile,
-  BadRequestException,
-} from '@nestjs/common';
+import {Controller,Get,Post,Put,Patch,Delete,Param,Query,Body,UsePipes,UseInterceptors,UploadedFile,BadRequestException,} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { CustomerValidationPipe } from './pipes/customer-validation.pipe';
-
-@Controller('customers') // base path: /customers
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
+@Controller('customers') 
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
 
-  // 1) GET /customers
   @Get()
   getAllCustomers() {
     return this.customerService.getAllCustomers();
   }
 
-  // 2) GET /customers/:id
   @Get(':id')
   getCustomerById(@Param('id') id: string) {
     return this.customerService.getCustomerById(Number(id));
   }
 
-  // 3) GET /customers/name/:name
   @Get('name/:name')
   getCustomerByName(@Param('name') name: string) {
     return this.customerService.getCustomerByName(name);
   }
 
-  // 4) GET /customers/search?id=&name=
   @Get('search')
   searchCustomer(
     @Query('id') id?: string,
@@ -54,7 +34,6 @@ export class CustomerController {
     );
   }
 
-  // 5) POST /customers  -> form-data: text fields + nidImage file
   @Post()
   @UseInterceptors(
     FileInterceptor('nidImage', {
@@ -83,7 +62,6 @@ export class CustomerController {
     );
   }
 
-  // 6) PUT /customers/:id  -> full update, optional new nidImage file
   @Put(':id')
   @UseInterceptors(
     FileInterceptor('nidImage', {
@@ -112,7 +90,6 @@ export class CustomerController {
     );
   }
 
-  // 7) PATCH /customers/:id/nid (simple: only nidNumber, optional size)
   @Patch(':id/nid')
   updateCustomerNid(
     @Param('id') id: string,
@@ -130,9 +107,42 @@ export class CustomerController {
     );
   }
 
-  // 8) DELETE /customers/:id
   @Delete(':id')
   deleteCustomer(@Param('id') id: string) {
     return this.customerService.deleteCustomer(Number(id));
+  }
+
+  @Post('category3')
+  @UseInterceptors(AnyFilesInterceptor())
+  async createCategory3User(
+    @Body('username') username: string,
+    @Body('fullName') fullName: string,
+    @Body('isActive') isActive?: string,
+  ) {
+    const isActiveBool =
+      isActive !== undefined
+        ? isActive === 'true' || isActive === '1'
+        : undefined;
+
+    return this.customerService.createCategory3User(
+      username,
+      fullName,
+      isActiveBool,
+    );
+  }
+
+  @Get('category3/search-by-fullname')
+  async searchByFullName(@Query('contains') contains: string) {
+    return this.customerService.findUsersByFullNameSubstring(contains);
+  }
+
+  @Get('category3/username/:username')
+  async getByUsername(@Param('username') username: string) {
+    return this.customerService.findUserByUsername(username);
+  }
+
+  @Delete('category3/username/:username')
+  async deleteByUsername(@Param('username') username: string) {
+    return this.customerService.removeUserByUsername(username);
   }
 }
