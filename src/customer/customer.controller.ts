@@ -1,13 +1,16 @@
-import {Controller,Get,Post,Put,Patch,Delete,Param,Query,Body,UsePipes,UseInterceptors,UploadedFile,BadRequestException,} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {Controller,Get,Post,Put,Patch,Delete,Param,Query,Body,UsePipes,UseInterceptors,UploadedFile,BadRequestException,UseGuards,} from '@nestjs/common';
+import { FileInterceptor, AnyFilesInterceptor } from '@nestjs/platform-express';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { CustomerValidationPipe } from './pipes/customer-validation.pipe';
-import { AnyFilesInterceptor } from '@nestjs/platform-express';
-@Controller('customers') 
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+
+
+@Controller('customers')
 export class CustomerController {
   constructor(private readonly customerService: CustomerService) {}
 
+  //Task 2: in-memory + file upload 
   @Get()
   getAllCustomers() {
     return this.customerService.getAllCustomers();
@@ -37,7 +40,7 @@ export class CustomerController {
   @Post()
   @UseInterceptors(
     FileInterceptor('nidImage', {
-      limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB
+      limits: { fileSize: 2 * 1024 * 1024 },
     }),
   )
   @UsePipes(CustomerValidationPipe)
@@ -48,14 +51,12 @@ export class CustomerController {
     if (!nidImage) {
       throw new BadRequestException('NID image file is required');
     }
-
     const sizeMb = nidImage.size / (1024 * 1024);
     if (sizeMb > 2) {
       throw new BadRequestException(
         'NID image must not be more than 2 MB',
       );
     }
-
     return this.customerService.createCustomer(
       createCustomerDto,
       nidImage,
@@ -65,7 +66,7 @@ export class CustomerController {
   @Put(':id')
   @UseInterceptors(
     FileInterceptor('nidImage', {
-      limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB
+      limits: { fileSize: 2 * 1024 * 1024 },
     }),
   )
   @UsePipes(CustomerValidationPipe)
@@ -82,7 +83,6 @@ export class CustomerController {
         );
       }
     }
-
     return this.customerService.updateCustomer(
       Number(id),
       updateCustomerDto,
@@ -99,7 +99,6 @@ export class CustomerController {
     const sizeNumber = nidImageSizeMb
       ? Number(nidImageSizeMb)
       : undefined;
-
     return this.customerService.updateCustomerNid(
       Number(id),
       nidNumber,
@@ -111,7 +110,7 @@ export class CustomerController {
   deleteCustomer(@Param('id') id: string) {
     return this.customerService.deleteCustomer(Number(id));
   }
-
+  //Task 3: User Category 3 DB operations
   @Post('category3')
   @UseInterceptors(AnyFilesInterceptor())
   async createCategory3User(
@@ -123,7 +122,6 @@ export class CustomerController {
       isActive !== undefined
         ? isActive === 'true' || isActive === '1'
         : undefined;
-
     return this.customerService.createCategory3User(
       username,
       fullName,
@@ -144,5 +142,54 @@ export class CustomerController {
   @Delete('category3/username/:username')
   async deleteByUsername(@Param('username') username: string) {
     return this.customerService.removeUserByUsername(username);
+  }
+
+  //Relationship routes
+  @UseGuards(JwtAuthGuard)
+@Post(':id/profile')
+@UseInterceptors(AnyFilesInterceptor())   
+async upsertProfile(
+  @Param('id') id: string,
+  @Body('address') address: string,
+  @Body('phone') phone: string,
+) {
+  return this.customerService.upsertProfile(
+    Number(id),
+    address,
+    phone,
+  );
+}
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/orders')
+  @UseInterceptors(AnyFilesInterceptor())
+  async createOrder(
+    @Param('id') id: string,
+    @Body('productName') productName: string,
+    @Body('quantity') quantity: string,
+  ) {
+    return this.customerService.createOrder(
+      Number(id),
+      productName,
+      Number(quantity),
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/orders')
+  async getOrders(@Param('id') id: string) {
+    return this.customerService.getOrdersByCustomer(Number(id));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/orders/:orderId')
+  async deleteOrder(
+    @Param('id') id: string,
+    @Param('orderId') orderId: string,
+  ) {
+    return this.customerService.deleteOrder(
+      Number(id),
+      Number(orderId),
+    );
   }
 }
