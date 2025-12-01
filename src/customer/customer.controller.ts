@@ -3,7 +3,7 @@ import { FileInterceptor, AnyFilesInterceptor } from '@nestjs/platform-express';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { CustomerValidationPipe } from './pipes/customer-validation.pipe';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 
 
 @Controller('customers')
