@@ -1,78 +1,71 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Query,
-  Delete,
-  Param,
-  Put,
-  Patch,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards,Put, Request, UseInterceptors} from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { AdminDto } from './dto/admin.dto';
 import { AdminService } from './admin.service';
+import { CreateProfileDto } from './dto/admin-profile.dto';
+import { CreateAnnouncementDto } from './dto/admin-announcement.dto';
+import { JwtAuthGuard } from '../Auth/jwt-auth.guard';
 
 @Controller('admin')
+@UseGuards(JwtAuthGuard)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  private admins = [
-    { id: 1, name: 'Tanjil', mail: 'tanjil@gmail.com' },
-    { id: 2, name: 'Tashrik', mail: 'tashrik@gmail.com' },
-  ];
-
-  @Post('/validate')
+  @Post('profile')
   @UseInterceptors(FileFieldsInterceptor([])) 
-  validateAdmin(@Body() adminData: AdminDto) {
-    return {
-      message: 'Admin data validated successfully!',
-      data: adminData,
-    };
+  createProfile(@Request() req, @Body() profileDto: CreateProfileDto) {
+    return this.adminService.createProfile(req.user.id, profileDto);
   }
 
-  @Get('/all')
-  getAll() {
-    return this.admins;
+  @Get('dashboard')
+  getDashboard(@Request() req) {
+    return this.adminService.getDashboard(req.user.id);
   }
 
-  @Post('/create')
-  createAdmin(@Body() adminData: AdminDto) {
-    console.log(adminData);
-    return this.adminService.createAdmin(adminData);
+  @Post('notice')
+  @UseInterceptors(FileFieldsInterceptor([]))  
+  createNotice(@Request() req, @Body() noticeDto: CreateAnnouncementDto) {
+    return this.adminService.createNotice(req.user.id, noticeDto);
   }
 
-  @Get('/search/find')
-  searchAdmin(@Query('username') username: string) {
-    return this.adminService.searchAdmin(username);
+  @Patch('notice/:id')
+  @UseInterceptors(FileFieldsInterceptor([]))  
+  updateNotice(@Param('id') id: number, @Body('description') desc: string) {
+    return this.adminService.updateNotice(id, desc);
   }
 
-  @Delete(':id')
-  deleteAdmin(@Param('id') id: string) {
-    const deleted = this.admins.splice(+id - 1, 1);
-    return { message: 'Admin deleted', data: deleted[0] };
+  @Delete('notice/:id')
+  deleteNotice(@Param('id') id: number) {
+    return this.adminService.deleteNotice(id);
   }
 
-  @Put(':id')
-  replaceAdmin(@Param('id') id: string, @Body() data: any) {
-    this.admins[+id - 1] = { id: +id, ...data };
-    return { message: 'Admin replaced', data: this.admins[+id - 1] };
-  }
+@Put('profile/:id')
+@UseInterceptors(FileFieldsInterceptor([]))
+updateProfileFull(
+  @Param('id') id: number,
+  @Body() profileDto: CreateProfileDto
+) {
+  return this.adminService.updateProfileFull(id, profileDto);
+}
 
-  @Patch(':id')
-  updateAdmin(@Param('id') id: string, @Body() data: any) {
-    this.admins[+id - 1] = { ...this.admins[+id - 1], ...data };
-    return this.adminService.patchMessage(this.admins[+id - 1]);
-  }
+@Get('profile/:id')
+getProfile(@Param('id') id: number) {
+  return this.adminService.getProfile(id);
+}
 
-  @Get('/allSellers')
-  getAllSellers() {
-    return this.adminService.getAllSellers();
-  }
 
-  @Get('/categories')
-  getAllcategories() {
-    return this.adminService.getAllcategories();
-  }
+@Patch('profile/:id')
+@UseInterceptors(FileFieldsInterceptor([]))
+patchProfile(
+  @Param('id') id: number,
+  @Body() body: any
+) {
+  return this.adminService.patchProfile(id, body);
+}
+
+@Delete('profile/:id')
+deleteProfile(@Param('id') id: number) {
+  return this.adminService.deleteProfile(id);
+}
+
+
 }

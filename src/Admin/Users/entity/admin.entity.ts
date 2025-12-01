@@ -11,14 +11,12 @@ export class AdminEntity {
   email: string;
 
   @Column()
-  password: string; // Stores Hashed Password
+  password: string; 
 
-  // Relation 1: One-to-One with Profile
   @OneToOne(() => AdminProfile, (profile) => profile.admin, { cascade: true })
   @JoinColumn()
   profile: AdminProfile;
 
-  // Relation 2: One-to-Many with Announcements
   @OneToMany(() => Announcement, (announcement) => announcement.admin)
   announcements: Announcement[];
 }
