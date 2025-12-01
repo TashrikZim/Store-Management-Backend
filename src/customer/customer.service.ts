@@ -1,8 +1,11 @@
-import { Injectable } from '@nestjs/common';
+ import {Injectable,NotFoundException, BadRequestException,} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { CustomerEntity } from './customer.entity';
+import { CustomerProfile } from './customer-profile.entity';
+import { Order } from './order.entity';
+
 
 export interface Customer {
   id: number;
@@ -15,21 +18,24 @@ export interface Customer {
 
 @Injectable()
 export class CustomerService {
+
   private customers: Customer[] = [];
   private currentId = 1;
+
 
   constructor(
     @InjectRepository(CustomerEntity)
     private readonly customerRepo: Repository<CustomerEntity>,
+    @InjectRepository(CustomerProfile)
+    private readonly profileRepo: Repository<CustomerProfile>,
+    @InjectRepository(Order)
+    private readonly orderRepo: Repository<Order>,
   ) {}
 
-  getAllCustomers() {
-    return {
-      success: true,
-      data: this.customers,
-    };
-  }
 
+  getAllCustomers() {
+    return { success: true, data: this.customers };
+  }
   getCustomerById(id: number) {
     const customer = this.customers.find((c) => c.id === id);
     return {
@@ -38,17 +44,12 @@ export class CustomerService {
       message: customer ? 'Customer found' : 'Customer not found',
     };
   }
-
   getCustomerByName(name: string) {
     const matched = this.customers.filter(
       (c) => c.name.toLowerCase() === name.toLowerCase(),
     );
-    return {
-      success: true,
-      data: matched,
-    };
+    return { success: true, data: matched };
   }
-
   searchCustomer(id?: number, name?: string) {
     const result = this.customers.filter((c) => {
       const matchId = id ? c.id === id : true;
@@ -57,11 +58,7 @@ export class CustomerService {
         : true;
       return matchId && matchName;
     });
-
-    return {
-      success: true,
-      data: result,
-    };
+    return { success: true, data: result };
   }
 
   createCustomer(dto: CreateCustomerDto, nidImage: any) {
@@ -87,11 +84,7 @@ export class CustomerService {
     };
   }
 
-  updateCustomer(
-    id: number,
-    dto: CreateCustomerDto,
-    nidImage?: any,
-  ) {
+  updateCustomer(id: number, dto: CreateCustomerDto, nidImage?: any) {
     const index = this.customers.findIndex((c) => c.id === id);
     if (index === -1) {
       return {
@@ -100,9 +93,7 @@ export class CustomerService {
         data: null,
       };
     }
-
     const existing = this.customers[index];
-
     const nidImageSizeMb = nidImage
       ? Number((nidImage.size / (1024 * 1024)).toFixed(2))
       : existing.nidImageSizeMb;
@@ -170,32 +161,32 @@ export class CustomerService {
     };
   }
 
+
   async createCategory3User(
-    username: string,
-    fullName: string,
-    isActive?: boolean,
-  ) {
-    const entity = this.customerRepo.create({
-      username,
-      fullName,
-      isActive: isActive ?? false,
-    });
-    const saved = await this.customerRepo.save(entity);
-    return {
-      success: true,
-      message: 'Customer (DB) created successfully',
-      data: saved,
-    };
-  }
+  username: string,
+  fullName: string,
+  isActive?: boolean,
+) {
+  const entity = this.customerRepo.create({
+    username,
+    fullName,
+    isActive: isActive ?? false,
+  });
+
+  const saved = await this.customerRepo.save(entity);
+
+  return {
+    success: true,
+    message: 'Customer (DB) created successfully',
+    data: saved,
+  };
+}
 
   async findUsersByFullNameSubstring(substring: string) {
     const users = await this.customerRepo.find({
       where: { fullName: ILike(`%${substring}%`) },
     });
-    return {
-      success: true,
-      data: users,
-    };
+    return { success: true, data: users };
   }
 
   async findUserByUsername(username: string) {
@@ -219,11 +210,78 @@ export class CustomerService {
         message: 'User not found',
       };
     }
+
     await this.customerRepo.remove(user);
     return {
       success: true,
       message: 'User removed successfully',
       data: user,
     };
+  }
+
+
+  async upsertProfile(
+    customerId: number,
+    address: string,
+    phone: string,
+  ) {
+    if (!address || !phone) {
+    throw new BadRequestException('address and phone are required');
+  }
+    const customer = await this.customerRepo.findOne({
+      where: { id: customerId },
+      relations: ['profile'],
+    });
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
+    }
+
+    let profile = customer.profile;
+    if (!profile) {
+      profile = this.profileRepo.create({ address, phone, customer });
+    } else {
+      profile.address = address;
+      profile.phone = phone;
+    }
+
+    const saved = await this.profileRepo.save(profile);
+    return { success: true, data: saved };
+  }
+
+  async createOrder(
+    customerId: number,
+    productName: string,
+    quantity: number,
+  ) {
+    const customer = await this.customerRepo.findOneBy({ id: customerId });
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
+    }
+
+    const order = this.orderRepo.create({
+      productName,
+      quantity,
+      customer,
+    });
+    const saved = await this.orderRepo.save(order);
+    return { success: true, data: saved };
+  }
+
+  async getOrdersByCustomer(customerId: number) {
+    const orders = await this.orderRepo.find({
+      where: { customer: { id: customerId } },
+    });
+    return { success: true, data: orders };
+  }
+
+  async deleteOrder(customerId: number, orderId: number) {
+    const order = await this.orderRepo.findOne({
+      where: { id: orderId, customer: { id: customerId } },
+    });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    await this.orderRepo.remove(order);
+    return { success: true, message: 'Order deleted' };
   }
 }

@@ -6,7 +6,7 @@ import { AppService } from './app.service';
 import { CustomerModule } from './customer/customer.module';
 import { AdminModule } from './Admin/admin.module';
 import { AuthModule } from './Auth/auth.module';
-
+import { AuthModule_Customer } from './Auth_customer/auth.module';
 @Module({
   imports: [
     ConfigModule.forRoot({

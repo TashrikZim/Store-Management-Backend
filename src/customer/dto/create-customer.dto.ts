@@ -1,5 +1,4 @@
 import {IsNotEmpty,Matches,} from 'class-validator';
-
 export class CreateCustomerDto {
   @IsNotEmpty({ message: 'Name is required' })
   @Matches(/^[A-Za-z ]+$/, {
