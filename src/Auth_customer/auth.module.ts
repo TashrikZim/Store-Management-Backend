@@ -3,9 +3,9 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthService_Customer } from './auth.service';
-import { AuthController } from './auth.controller';
+import { AuthController_Customer } from './auth.controller';
 import { CustomerEntity } from '../customer/customer.entity';
-import { JwtStrategy } from './jwt.strategy';
+import { JwtStrategy_Customer } from './jwt.strategy';
 
 @Module({
   imports: [
@@ -16,8 +16,8 @@ import { JwtStrategy } from './jwt.strategy';
       signOptions: { expiresIn: '1h' },
     }),
   ],
-  providers: [AuthService_Customer, JwtStrategy],
-  controllers: [AuthController],
+  providers: [AuthService_Customer, JwtStrategy_Customer],
+  controllers: [AuthController_Customer],
   exports: [AuthService_Customer],
 })
 export class AuthModule_Customer {}

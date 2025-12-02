@@ -2,8 +2,8 @@ import { Controller, Post, Body, UseInterceptors } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { AuthService_Customer } from './auth.service';
 
-@Controller('auth')
-export class AuthController {
+@Controller('auth/customer')
+export class AuthController_Customer {
   constructor(private readonly authService: AuthService_Customer) {}
 
   @Post('register')
