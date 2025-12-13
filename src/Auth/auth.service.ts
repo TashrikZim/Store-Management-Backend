@@ -37,12 +37,12 @@ export class AuthService {
 
     const admin = await this.adminRepo.findOne({ where: { email } });
     if (!admin) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Invalid');
     }
 
     const match = await bcrypt.compare(password, admin.password);
     if (!match) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Invalid');
     }
 
     const payload = { sub: admin.id, email: admin.email };
