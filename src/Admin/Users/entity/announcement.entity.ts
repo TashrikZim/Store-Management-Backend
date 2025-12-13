@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, Admin } from 'typeorm';
 import { AdminEntity } from './admin.entity';
 
 @Entity('announcements')
@@ -17,4 +17,6 @@ export class Announcement {
 
   @ManyToOne(() => AdminEntity, (admin) => admin.announcements)
   admin: AdminEntity;
+
+
 }

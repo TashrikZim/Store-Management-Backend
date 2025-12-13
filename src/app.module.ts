@@ -7,6 +7,7 @@ import { CustomerModule } from './customer/customer.module';
 import { AdminModule } from './Admin/admin.module';
 import { AuthModule } from './Auth/auth.module';
 import { AuthModule_Customer } from './Auth_customer/auth.module';
+import { MailModule } from './mailer/mail.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -26,7 +27,8 @@ import { AuthModule_Customer } from './Auth_customer/auth.module';
     CustomerModule, 
     AdminModule,    
     AuthModule,
-    AuthModule_Customer,    
+    AuthModule_Customer,
+    MailModule,    
   ],
   controllers: [AppController],
   providers: [AppService],
