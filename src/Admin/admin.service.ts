@@ -34,7 +34,7 @@ export class AdminService {
     profile.admin = admin;
     return this.profileRepo.save(profile);
   }
-
+//Pusher key
   async createNotice(id: number, noticeDto: CreateAnnouncementDto) {
     const pusher = new Pusher({
       appId: "2101066",
