@@ -3,6 +3,9 @@ import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class MailService {
+  sendMail(arg0: { to: string; subject: string; text: string; }) {
+    throw new Error('Method not implemented.');
+  }
   constructor(private readonly mailerService: MailerService) {}
 
   async sendAnnouncementEmail(email: string, title: string, description: string) {
