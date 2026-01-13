@@ -76,6 +76,8 @@ export class AdminService {
       relations: ['profile', 'announcements'],
     });
   }
+   
+  //notice featuer
 
   async updateNotice(id: number, desc: string) {
     const notice = await this.noticeRepo.findOneBy({ id });
@@ -91,7 +93,7 @@ export class AdminService {
     }
     return { message: 'Notice deleted successfully' };
   }
-
+ //update profile
   async updateProfileFull(id: number, dto: CreateProfileDto) {
     const profile = await this.profileRepo.findOneBy({ id });
     if (!profile) throw new NotFoundException('Profile not found');
