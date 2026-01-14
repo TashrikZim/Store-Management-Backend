@@ -106,6 +106,7 @@ export class AdminService {
     return this.profileRepo.save(profile);
   }
   
+  // fetching profile
   async getProfile(id: number) {
     const profile = await this.profileRepo.findOne({
       where: { id },
