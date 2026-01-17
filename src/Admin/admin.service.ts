@@ -124,7 +124,7 @@ export class AdminService {
     Object.assign(profile, partialData);
     return this.profileRepo.save(profile);
   }
- 
+ //delete 
   async deleteProfile(id: number) {
     const result = await this.profileRepo.delete(id);
     if (result.affected === 0) {
