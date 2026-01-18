@@ -34,7 +34,7 @@ export class AdminService {
     profile.admin = admin;
     return this.profileRepo.save(profile);
   }
-//Pusher key
+
   async createNotice(id: number, noticeDto: CreateAnnouncementDto) {
     const pusher = new Pusher({
       appId: "2101066",
@@ -76,9 +76,7 @@ export class AdminService {
       relations: ['profile', 'announcements'],
     });
   }
-   
-  //notice featuer
-
+//update notice
   async updateNotice(id: number, desc: string) {
     const notice = await this.noticeRepo.findOneBy({ id });
     if (!notice) throw new NotFoundException('Notice not found');
@@ -93,7 +91,7 @@ export class AdminService {
     }
     return { message: 'Notice deleted successfully' };
   }
- //update profile
+
   async updateProfileFull(id: number, dto: CreateProfileDto) {
     const profile = await this.profileRepo.findOneBy({ id });
     if (!profile) throw new NotFoundException('Profile not found');
@@ -106,7 +104,6 @@ export class AdminService {
     return this.profileRepo.save(profile);
   }
   
-  // fetching profile
   async getProfile(id: number) {
     const profile = await this.profileRepo.findOne({
       where: { id },
@@ -117,7 +114,6 @@ export class AdminService {
     return profile;
   }
   
-  //update profile
   async patchProfile(id: number, partialData: any) {
     const profile = await this.profileRepo.findOneBy({ id });
     if (!profile) throw new NotFoundException('Profile not found');
@@ -125,7 +121,7 @@ export class AdminService {
     Object.assign(profile, partialData);
     return this.profileRepo.save(profile);
   }
- //delete 
+ 
   async deleteProfile(id: number) {
     const result = await this.profileRepo.delete(id);
     if (result.affected === 0) {
@@ -157,4 +153,16 @@ export class AdminService {
       gender: profile ? profile.gender : "N/A"
     };
   }
+
+  // In admin.service.ts
+
+// Add this new function inside your AdminService class
+async getAllAdmins() {
+    // This assumes you are using TypeORM. 
+    // It fetches ALL records from the admin table.
+    return await this.adminRepo.find(); 
+    
+    // NOTE: If you store admins in a generic 'User' table with roles, use this instead:
+    // return await this.userRepo.find({ where: { role: 'admin' } });
+}
 }

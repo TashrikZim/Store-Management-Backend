@@ -29,7 +29,11 @@ export class AdminController {
   async getDashboard(@Request() req) {
     return this.adminService.getProfile2(req.user.email);
   }
-
+  @Get('/all')
+   // @UseGuards(AuthGuard) // Keep this if you want to protect the route
+    getAllAdmins() {
+        return this.adminService.getAllAdmins();
+    }
   @Post('notice')
   @UseInterceptors(FileFieldsInterceptor([]))  
   createNotice(@Request() req, @Body() noticeDto: CreateAnnouncementDto) {
