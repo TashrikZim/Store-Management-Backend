@@ -117,6 +117,7 @@ export class AdminService {
     return profile;
   }
   
+  //update profile
   async patchProfile(id: number, partialData: any) {
     const profile = await this.profileRepo.findOneBy({ id });
     if (!profile) throw new NotFoundException('Profile not found');
