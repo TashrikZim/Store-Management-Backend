@@ -103,7 +103,7 @@ export class AdminService {
 
     return this.profileRepo.save(profile);
   }
-  
+  //fetch info
   async getProfile(id: number) {
     const profile = await this.profileRepo.findOne({
       where: { id },
