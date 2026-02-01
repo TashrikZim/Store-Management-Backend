@@ -83,7 +83,7 @@ export class AdminService {
     notice.description = desc;
     return this.noticeRepo.save(notice);
   }
-
+//delete notice by admin
   async deleteNotice(id: number) {
     const result = await this.noticeRepo.delete(id);
     if (result.affected === 0) {
