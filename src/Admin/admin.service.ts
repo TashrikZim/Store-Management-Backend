@@ -155,15 +155,12 @@ export class AdminService {
     };
   }
 
-  // In admin.service.ts
-
-// Add this new function inside your AdminService class
+//all the registerd admins
 async getAllAdmins() {
-    // This assumes you are using TypeORM. 
+   
     // It fetches ALL records from the admin table.
     return await this.adminRepo.find(); 
     
-    // NOTE: If you store admins in a generic 'User' table with roles, use this instead:
-    // return await this.userRepo.find({ where: { role: 'admin' } });
+
 }
 }
