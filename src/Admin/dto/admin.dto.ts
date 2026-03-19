@@ -6,6 +6,7 @@ import {
   IsUrl,
 } from 'class-validator';
 
+//name format
 export class AdminDto {
   @IsString()
   @Matches(/^[A-Za-z\s]+$/, {
